@@ -1,4 +1,15 @@
-# Secretos y credenciales — NUNCA commitear
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+
+# Credenciales y secretos
 .env
 .env.*
 !.env.example
@@ -6,47 +17,22 @@
 *.pem
 *.p12
 *.pfx
-.rotated-secrets.txt
-secrets.yml
-secrets.yaml
-*_credentials.json
-credentials.json
+*.crt
 
-# Salidas de la herramienta
+# Outputs generados
 *.html
 *.pdf
 *.json
-!package.json
 *.sarif
+*.csv
+*.log
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.pyc
-*.pyo
-dist/
-build/
-*.egg-info/
-*.egg
-.eggs/
-
-# Entornos virtuales
-.venv/
-venv/
-env/
-ENV/
-
-# IDEs y editores
+# Editores y sistema operativo
+.DS_Store
+._*
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
-.DS_Store
-
-# Cobertura y tests
-.coverage
-htmlcov/
-.pytest_cache/
-.mypy_cache/
+Thumbs.db

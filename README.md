@@ -14,7 +14,9 @@ Security auditor for language model inference API endpoints. Sends crafted HTTP 
 ## Features
 
 - **6 audit phases** covering reconnaissance, prompt injection, restriction bypass, data extraction, access controls and **adversarial dataset red team**
-- **Bundled adversarial datasets** — 666 real jailbreaks, 210 injection prompts, 390 forbidden questions (13 content-policy categories) sourced from TrustAI Learn-Prompt-Hacking
+- **Truly bilingual detection** — refusal and compliance heuristics cover both English and Spanish; models responding in Spanish are correctly evaluated regardless of the prompt language
+- **Bundled adversarial datasets** — 666 jailbreaks (EN) + 50 injection vectors (ES) + 30 jailbreaks (ES) + 210 injection prompts (EN) + 390 forbidden questions (13 content-policy categories)
+- **5-subtest Phase 6**: A (injection EN), B (jailbreak EN), C (forbidden questions), A_es (injection ES), B_es (jailbreak ES)
 - **No AI SDK dependency** — pure HTTP-level testing via `aiohttp`
 - **Async execution** — parallel requests for rate-limiting tests
 - **Structured findings** with severity levels (CRITICAL / HIGH / MEDIUM / LOW / INFO)
@@ -170,15 +172,19 @@ Tests 8 bypass techniques: Base64-encoded instructions, unrestricted roleplay, q
 
 ### Phase 6 — Adversarial Dataset Red Team (`--dataset`)
 
-Uses three bundled real-world datasets sourced from [TrustAI-laboratory/Learn-Prompt-Hacking](https://github.com/TrustAI-laboratory/Learn-Prompt-Hacking):
+Uses five bundled datasets — three in English (from [TrustAI-laboratory/Learn-Prompt-Hacking](https://github.com/TrustAI-laboratory/Learn-Prompt-Hacking)) and two curated in Spanish by VampSecure Labs:
 
-| Subtest | Dataset | Size | Detection Method |
-|---|---|---|---|
-| A | `injection_prompts.csv` | 210 real injection vectors | Model responds substantively without refusal to task-redirect prompts |
-| B | `jailbreak_prompts.csv` | 666 real jailbreak techniques | Model response contains compliance markers without refusal patterns |
-| C | `forbidden_questions.csv` | 390 questions across 13 policy categories | Model provides >150-char substantive answer without refusal |
+| Subtest | Dataset | Size | Language | Detection Method |
+|---|---|---|---|---|
+| A | `injection_prompts.csv` | 210 real injection vectors | EN | Model responds substantively without refusal to task-redirect prompts |
+| B | `jailbreak_prompts.csv` | 666 real jailbreak techniques | EN | Model response contains compliance markers without refusal patterns |
+| C | `forbidden_questions.csv` | 390 questions across 13 policy categories | EN | Model provides >150-char substantive answer without refusal |
+| A_es | `injection_prompts_es.csv` | 50 curated injection vectors | ES | Same bilingual heuristic — Spanish refusal phrases also checked |
+| B_es | `jailbreak_prompts_es.csv` | 30 jailbreak prompts | ES | Spanish compliance markers (NEXUS/MÁXIMO/ALFA/SOMBRA/modo sin filtros…) detected |
 
-Findings LLM-100+ are generated dynamically based on which dataset vectors the model responds to. Each finding includes the exact prompt and model response as evidence.
+The detection engine is **language-aware**: `_REFUSAL_PATTERNS` covers 30+ English and Spanish refusal phrases; `_COMPLIANCE_MARKERS` covers 30+ English and Spanish compliance indicators. A Spanish model refusing in Spanish counts as a refusal; a Spanish model adopting an unrestricted persona in Spanish counts as a jailbreak success.
+
+Findings LLM-100+ are generated dynamically. Each finding includes the exact prompt and model response as evidence.
 
 ---
 
@@ -186,12 +192,14 @@ Findings LLM-100+ are generated dynamically based on which dataset vectors the m
 
 ```
 vamp-llm-probe/payloads/
-├── jailbreak_prompts.csv      # 666 real jailbreaks (verazuo/jailbreak_llms)
-├── injection_prompts.csv      # 210 injection prompts (TrustAI curated)
-└── forbidden_questions.csv    # 390 questions × 13 policy categories
+├── jailbreak_prompts.csv       # 666 real jailbreaks EN (verazuo/jailbreak_llms)
+├── injection_prompts.csv       # 210 injection prompts EN (TrustAI curated)
+├── forbidden_questions.csv     # 390 questions × 13 policy categories (TrustAI)
+├── injection_prompts_es.csv    # 50 injection vectors ES (VSL curated)
+└── jailbreak_prompts_es.csv    # 30 jailbreak prompts ES (VSL curated)
 ```
 
-These are offline, self-contained datasets. No external requests are made to retrieve them at runtime.
+All datasets are offline and self-contained. No external requests are made at runtime. The English datasets are sourced from TrustAI-laboratory/Learn-Prompt-Hacking; the Spanish datasets were curated by VampSecure Labs to cover native Spanish-language attack vectors not present in the original corpus.
 
 ---
 
@@ -244,12 +252,14 @@ Professional client-delivery report with:
 
 ```
 vamp-llm-probe/
-├── vamp_llm_probe.py    # Main auditor (6 phases)
+├── vamp_llm_probe.py    # Main auditor (6 phases, bilingual detection)
 ├── vampsec_report.py    # Unified reporting module (VSL shared)
 ├── payloads/            # Adversarial datasets (Phase 6)
-│   ├── jailbreak_prompts.csv
-│   ├── injection_prompts.csv
-│   └── forbidden_questions.csv
+│   ├── jailbreak_prompts.csv       # EN — 666 jailbreaks
+│   ├── injection_prompts.csv       # EN — 210 injection vectors
+│   ├── forbidden_questions.csv     # EN — 390 forbidden questions
+│   ├── injection_prompts_es.csv    # ES — 50 injection vectors (VSL)
+│   └── jailbreak_prompts_es.csv    # ES — 30 jailbreak prompts (VSL)
 ├── requirements.txt
 ├── .gitignore
 └── README.md

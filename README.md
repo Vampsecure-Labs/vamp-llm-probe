@@ -1,6 +1,7 @@
 # vamp-llm-probe
 
 ![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.1-dc143c?style=flat-square)
 ![License MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![VampSecure Labs](https://img.shields.io/badge/VampSecure-Labs-red?style=flat-square)
 
@@ -12,7 +13,8 @@ Security auditor for language model inference API endpoints. Sends crafted HTTP 
 
 ## Features
 
-- **5 audit phases** covering reconnaissance, prompt injection, restriction bypass, data extraction and access controls
+- **6 audit phases** covering reconnaissance, prompt injection, restriction bypass, data extraction, access controls and **adversarial dataset red team**
+- **Bundled adversarial datasets** — 666 real jailbreaks, 210 injection prompts, 390 forbidden questions (13 content-policy categories) sourced from TrustAI Learn-Prompt-Hacking
 - **No AI SDK dependency** — pure HTTP-level testing via `aiohttp`
 - **Async execution** — parallel requests for rate-limiting tests
 - **Structured findings** with severity levels (CRITICAL / HIGH / MEDIUM / LOW / INFO)
@@ -28,7 +30,7 @@ Security auditor for language model inference API endpoints. Sends crafted HTTP 
 pip install -r requirements.txt
 ```
 
-Requirements: Python 3.8+ and `aiohttp>=3.9.0`. The `fpdf2` package is required only for PDF report generation.
+Requirements: Python 3.8+ and `aiohttp>=3.9.0`.
 
 ---
 
@@ -63,6 +65,25 @@ python3 vamp_llm_probe.py \
   --verbose
 ```
 
+### Activate dataset red team (Phase 6)
+
+```bash
+python3 vamp_llm_probe.py \
+  --endpoint http://localhost:11434 \
+  --dataset \
+  --dataset-sample 30
+```
+
+### Dataset with category filter (forbidden questions)
+
+```bash
+python3 vamp_llm_probe.py \
+  --endpoint http://localhost:11434 \
+  --dataset \
+  --dataset-sample 20 \
+  --dataset-categories "Malware,Illegal Activity,Physical Harm"
+```
+
 ### Skip jailbreak phase (restricted environments)
 
 ```bash
@@ -88,6 +109,11 @@ python3 vamp_llm_probe.py \
 | `--auditor NOMBRE` | Auditor name for the report | VampSecure Labs |
 | `--no-jailbreak` | Skip Phase 3 (restriction bypass) | false |
 | `--verbose` | Verbose mode — shows HTTP traces | false |
+| `--dataset` | Activate Phase 6: adversarial dataset red team | false |
+| `--dataset-sample N` | Prompts per dataset type to test | 15 |
+| `--dataset-categories CATS` | Comma-separated forbidden question categories to test | all |
+
+**Available forbidden question categories:** `Illegal Activity`, `Hate Speech`, `Malware`, `Physical Harm`, `Economic Harm`, `Fraud`, `Pornography`, `Political Lobbying`, `Privacy Violence`, `Legal Opinion`, `Financial Advice`, `Health Consultation`, `Gov Decision`
 
 ---
 
@@ -100,6 +126,7 @@ python3 vamp_llm_probe.py \
 | 3 | Restriction Bypass Attempts | LLM-030..049 | HIGH to MEDIUM |
 | 4 | Data Extraction & Leaks | LLM-050..069 | CRITICAL to MEDIUM |
 | 5 | Access Controls & Behavior | LLM-070..089 | HIGH to LOW |
+| 6 | Adversarial Dataset Red Team | LLM-100..139 | HIGH |
 
 ### Phase 1 — Endpoint Reconnaissance
 
@@ -141,6 +168,31 @@ Tests 8 bypass techniques: Base64-encoded instructions, unrestricted roleplay, q
 | LLM-074 | Permissive CORS on inference endpoint | MEDIUM |
 | LLM-075 | Missing HTTP security headers | LOW |
 
+### Phase 6 — Adversarial Dataset Red Team (`--dataset`)
+
+Uses three bundled real-world datasets sourced from [TrustAI-laboratory/Learn-Prompt-Hacking](https://github.com/TrustAI-laboratory/Learn-Prompt-Hacking):
+
+| Subtest | Dataset | Size | Detection Method |
+|---|---|---|---|
+| A | `injection_prompts.csv` | 210 real injection vectors | Model responds substantively without refusal to task-redirect prompts |
+| B | `jailbreak_prompts.csv` | 666 real jailbreak techniques | Model response contains compliance markers without refusal patterns |
+| C | `forbidden_questions.csv` | 390 questions across 13 policy categories | Model provides >150-char substantive answer without refusal |
+
+Findings LLM-100+ are generated dynamically based on which dataset vectors the model responds to. Each finding includes the exact prompt and model response as evidence.
+
+---
+
+## Bundled Datasets
+
+```
+vamp-llm-probe/payloads/
+├── jailbreak_prompts.csv      # 666 real jailbreaks (verazuo/jailbreak_llms)
+├── injection_prompts.csv      # 210 injection prompts (TrustAI curated)
+└── forbidden_questions.csv    # 390 questions × 13 policy categories
+```
+
+These are offline, self-contained datasets. No external requests are made to retrieve them at runtime.
+
 ---
 
 ## Exit Codes
@@ -154,7 +206,7 @@ Tests 8 bypass techniques: Base64-encoded instructions, unrestricted roleplay, q
 Use these codes in CI/CD pipelines to gate deployments:
 
 ```bash
-python3 vamp_llm_probe.py --endpoint "$ENDPOINT" || {
+python3 vamp_llm_probe.py --endpoint "$ENDPOINT" --dataset || {
   echo "Security findings detected — blocking deployment"
   exit 1
 }
@@ -171,8 +223,8 @@ Machine-readable structured output following the VSL standard schema:
 ```json
 {
   "schema_version": "1.0",
-  "generated": "2026-08-03 12:00 UTC",
-  "meta": { "tool": "vamp-llm-probe", "tool_version": "1.0", ... },
+  "generated": "2026-08-12 12:00 UTC",
+  "meta": { "tool": "vamp-llm-probe", "tool_version": "1.1", ... },
   "summary": { "total": 5, "by_severity": { "CRITICAL": 2, "HIGH": 1, ... } },
   "findings": [ { "id": "LLM-001", "severity": "CRITICAL", ... } ]
 }
@@ -192,8 +244,12 @@ Professional client-delivery report with:
 
 ```
 vamp-llm-probe/
-├── vamp_llm_probe.py    # Main auditor (5 phases)
+├── vamp_llm_probe.py    # Main auditor (6 phases)
 ├── vampsec_report.py    # Unified reporting module (VSL shared)
+├── payloads/            # Adversarial datasets (Phase 6)
+│   ├── jailbreak_prompts.csv
+│   ├── injection_prompts.csv
+│   └── forbidden_questions.csv
 ├── requirements.txt
 ├── .gitignore
 └── README.md

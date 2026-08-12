@@ -27,6 +27,10 @@ dist/
 *.csv
 *.log
 
+# Excepción: datasets bundleados en payloads/
+!payloads/*.csv
+!payloads/*.json
+
 # Editores y sistema operativo
 .DS_Store
 ._*

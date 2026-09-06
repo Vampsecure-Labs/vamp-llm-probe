@@ -70,7 +70,7 @@ RUTAS_INFERENCIA: List[Tuple[str, str]] = [
     ("/api/generate",          "api_generate"),
 ]
 
-# Headers de seguridad que deben estar presentes
+# Cabeceras de seguridad que deben estar presentes
 HEADERS_SEGURIDAD: List[str] = [
     "X-Content-Type-Options",
     "X-Frame-Options",
@@ -132,7 +132,7 @@ BANNER = r"""
 """
 
 # ---------------------------------------------------------------------------
-# Utilidades de logging y presentación
+# Utilidades de registro y presentación
 # ---------------------------------------------------------------------------
 
 _verbose_global: bool = False
@@ -165,7 +165,7 @@ def log_err(msg: str) -> None:
 
 
 def log_verbose(msg: str) -> None:
-    """Imprime un mensaje detallado (solo en modo verbose)."""
+    """Imprime un mensaje detallado (solo en modo detallado)."""
     if _verbose_global:
         print(f"  {C.DIM}    {msg}{C.RESET}")
 
@@ -2907,7 +2907,7 @@ async def main_async() -> int:
     parser = construir_parser()
     args   = parser.parse_args()
 
-    # Activar modo verbose global
+    # Activar modo detallado global
     _set_verbose(args.verbose)
 
     # Mostrar banner

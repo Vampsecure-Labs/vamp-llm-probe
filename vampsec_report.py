@@ -454,6 +454,10 @@ class VampSecReport:
   .card-rem{{padding:14px 18px;background:#f9fff8;border-top:1px solid #eef5ee}}
   .card-refs{{padding:8px 18px;background:#f8f8fa;border-top:1px solid #eee;
               font-size:.76em}}
+  .card-tags{{padding:6px 18px 10px;display:flex;flex-wrap:wrap;gap:5px}}
+  .tag-owasp{{display:inline-block;padding:2px 7px;border-radius:3px;
+              font-size:.67em;font-weight:700;letter-spacing:.4px;
+              background:#e8f0fe;color:#2255cc;border:1px solid #b8d0f8}}
 
   /* Marca de agua */
   body::before{{content:"CONFIDENCIAL";position:fixed;top:50%;left:50%;
@@ -613,6 +617,15 @@ class VampSecReport:
                 f'  <div class="fld-val">{f.remediation}</div>'
                 f'</div>'
                 + (f'<div class="card-refs"><strong>Referencias:</strong> {refs_h}</div>' if refs_h else "")
+                + (
+                    '<div class="card-tags">'
+                    + "".join(
+                        f'<span class="tag-owasp">{t}</span>'
+                        for t in f.tags if t.startswith("OWASP-")
+                    )
+                    + '</div>'
+                    if any(t.startswith("OWASP-") for t in f.tags) else ""
+                )
                 + f'</div>'
             )
         return "\n".join(partes)

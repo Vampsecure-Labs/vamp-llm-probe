@@ -2293,6 +2293,89 @@ def _detectar_contenido_sensible(texto: str) -> List[str]:
 # Clase principal — LLMProbe
 # ---------------------------------------------------------------------------
 
+# ── Mapeo OWASP LLM Top 10 (2025) + Agentic AI Top 10 (2026) ─────────────────
+#
+# OWASP LLM Top 10 2025:
+#   LLM01 Prompt Injection          LLM02 Sensitive Information Disclosure
+#   LLM05 Improper Output Handling  LLM06 Excessive Agency
+#   LLM07 System Prompt Leakage     LLM10 Unbounded Consumption
+#
+# OWASP Agentic AI Top 10 2026:
+#   AGENT04 Context Manipulation    AGENT06 Intent Breaking & Goal Hijacking
+#   AGENT07 Data Exfiltration via Agents   AGENT09 Resource Overuse
+
+def _etiquetas_owasp(finding_id: str) -> List[str]:
+    """
+    Devuelve las etiquetas OWASP correspondientes al ID de hallazgo indicado.
+
+    Soporta:
+    - Rango numérico estándar  LLM-NNN   (fases 1-6)
+    - Subtests ASCII smuggling LLM-ASCII-NNN
+    - Hallazgos de dataset     LLM-1NNN
+    """
+    if not finding_id.startswith("LLM-"):
+        return []
+
+    sufijo = finding_id[4:]  # p.ej. "010", "ASCII-001", "100"
+
+    # Subtests activos de ASCII smuggling (Subtest D: LLM-ASCII-NNN)
+    if sufijo.startswith("ASCII-"):
+        return ["OWASP-LLM01", "OWASP-AGENT04"]
+
+    try:
+        n = int(sufijo)
+    except ValueError:
+        return []
+
+    # Fase 1 — Reconocimiento (LLM-001..009)
+    if 1 <= n <= 9:
+        tags = ["OWASP-LLM06"]
+        if n == 3:  # versión del modelo expuesta → fuga de información
+            tags.append("OWASP-LLM02")
+        return tags
+
+    # Fase 2 — Inyección de prompt (LLM-010..029, incluye detección pasiva ASCII)
+    if 10 <= n <= 29:
+        return ["OWASP-LLM01", "OWASP-AGENT04", "OWASP-AGENT06"]
+
+    # Fase 3 — Evasión / jailbreak (LLM-030..049)
+    if 30 <= n <= 49:
+        return ["OWASP-LLM01", "OWASP-AGENT06"]
+
+    # Fase 4 — Extracción de datos (LLM-050..069)
+    if 50 <= n <= 69:
+        return ["OWASP-LLM02", "OWASP-LLM07", "OWASP-AGENT07"]
+
+    # Fase 5 — Controles de acceso (LLM-070..089)
+    if n == 70:  # rate limiting / consumo descontrolado
+        return ["OWASP-LLM10", "OWASP-AGENT09"]
+    if 71 <= n <= 73:  # manejo incorrecto de salidas
+        return ["OWASP-LLM05"]
+    if 74 <= n <= 89:  # CORS, cabeceras de seguridad, agencia excesiva
+        return ["OWASP-LLM06"]
+
+    # Fase 6 — Dataset / red team (LLM-100..199)
+    if 100 <= n <= 199:
+        return ["OWASP-LLM01", "OWASP-AGENT06"]
+
+    return []
+
+
+def _aplicar_tags_owasp(hallazgos: "List[Finding]") -> None:
+    """
+    Añade etiquetas OWASP a cada hallazgo según su ID.
+
+    Se ejecuta como paso de post-procesado sobre la lista completa de hallazgos
+    antes de generar los informes, sin modificar las fases de auditoría.
+    Los tags ya existentes se preservan; solo se añaden los OWASP que falten.
+    """
+    for h in hallazgos:
+        nuevos = _etiquetas_owasp(h.id)
+        for tag in nuevos:
+            if tag not in h.tags:
+                h.tags.append(tag)
+
+
 class LLMProbe:
     """
     Orquestador principal del auditor de seguridad para endpoints de inferencia.
@@ -2397,6 +2480,7 @@ class LLMProbe:
         Genera los ficheros de salida configurados (JSON y/o HTML).
         Imprime el resumen de hallazgos en consola.
         """
+        _aplicar_tags_owasp(self.hallazgos)
         resumen_hallazgos(self.hallazgos)
 
         meta = ReportMeta(

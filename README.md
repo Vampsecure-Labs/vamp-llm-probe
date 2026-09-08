@@ -1,7 +1,7 @@
 # vamp-llm-probe
 
 ![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.2.0-dc143c?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.3.0-dc143c?style=flat-square)
 ![License MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![VampSecure Labs](https://img.shields.io/badge/VampSecure-Labs-red?style=flat-square)
 
@@ -21,7 +21,8 @@ Security auditor for language model inference API endpoints. Sends crafted HTTP 
 - **No AI SDK dependency** — pure HTTP-level testing via `aiohttp`
 - **Async execution** — parallel requests for rate-limiting tests
 - **Structured findings** with severity levels (CRITICAL / HIGH / MEDIUM / LOW / INFO)
-- **Professional reports** — JSON (machine-readable) and HTML (client-delivery)
+- **OWASP mapping** — every finding is automatically tagged with the corresponding [OWASP LLM Top 10 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) and [OWASP Agentic AI Top 10 2026](https://owasp.org/www-project-agentic-ai-threats/) categories; visible in JSON output and HTML reports
+- **Professional reports** — JSON (machine-readable) and HTML (client-delivery) with OWASP tags on each finding card
 - **Exit codes** suitable for CI/CD pipeline integration
 - **Auto-detection** of API format and available models
 
@@ -203,6 +204,46 @@ Legitimate exceptions — the English, Scottish, and Welsh flag emoji — are ex
 
 ---
 
+## OWASP Mapping
+
+Every finding produced by vamp-llm-probe is automatically tagged with the corresponding OWASP categories before the report is generated. Tags appear in the JSON output (`finding.tags`) and as blue badges in the HTML report.
+
+### OWASP LLM Top 10 — 2025
+
+| Tag | Category |
+|---|---|
+| `OWASP-LLM01` | Prompt Injection |
+| `OWASP-LLM02` | Sensitive Information Disclosure |
+| `OWASP-LLM05` | Improper Output Handling |
+| `OWASP-LLM06` | Excessive Agency |
+| `OWASP-LLM07` | System Prompt Leakage |
+| `OWASP-LLM10` | Unbounded Consumption |
+
+### OWASP Agentic AI Top 10 — 2026
+
+| Tag | Category |
+|---|---|
+| `OWASP-AGENT04` | Context Manipulation |
+| `OWASP-AGENT06` | Intent Breaking & Goal Hijacking |
+| `OWASP-AGENT07` | Data Exfiltration via Agents |
+| `OWASP-AGENT09` | Resource Overuse |
+
+### Finding-to-OWASP mapping
+
+| Finding range | Phase | OWASP tags |
+|---|---|---|
+| LLM-001..009 | Endpoint Reconnaissance | `LLM06` (+ `LLM02` if LLM-003) |
+| LLM-010..029 | Prompt Injection + passive ASCII scan | `LLM01` `AGENT04` `AGENT06` |
+| LLM-030..049 | Restriction Bypass / Jailbreak | `LLM01` `AGENT06` |
+| LLM-050..069 | Data Extraction & Leaks | `LLM02` `LLM07` `AGENT07` |
+| LLM-070 | Rate limiting absent | `LLM10` `AGENT09` |
+| LLM-071..073 | Output handling issues | `LLM05` |
+| LLM-074..089 | CORS / security headers | `LLM06` |
+| LLM-100..199 | Adversarial dataset red team | `LLM01` `AGENT06` |
+| LLM-ASCII-* | ASCII smuggling active (Subtest D) | `LLM01` `AGENT04` |
+
+---
+
 ## Bundled Datasets
 
 ```
@@ -248,7 +289,7 @@ Machine-readable structured output following the VSL standard schema:
 {
   "schema_version": "1.0",
   "generated": "2026-08-12 12:00 UTC",
-  "meta": { "tool": "vamp-llm-probe", "tool_version": "1.2.0", ... },
+  "meta": { "tool": "vamp-llm-probe", "tool_version": "1.3.0", ... },
   "summary": { "total": 5, "by_severity": { "CRITICAL": 2, "HIGH": 1, ... } },
   "findings": [ { "id": "LLM-001", "severity": "CRITICAL", ... } ]
 }

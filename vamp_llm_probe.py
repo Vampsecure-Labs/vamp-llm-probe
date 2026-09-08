@@ -43,7 +43,7 @@ from vampsec_report import (
 # Constantes globales
 # ---------------------------------------------------------------------------
 
-VERSION          = "1.2.0"
+VERSION          = "1.3.1"
 TOOL             = "vamp-llm-probe"
 FINDING_PREFIX   = "LLM"
 COPYRIGHT        = "© VampSecure Studios — VampSecure Labs Security Research Division"
@@ -2985,13 +2985,13 @@ async def main_async() -> int:
     Devuelve el exit code calculado según la severidad máxima encontrada.
     """
     parser = construir_parser()
+    print(f"{C.ROJO_OSC}{BANNER}{C.RESET}")
     args   = parser.parse_args()
 
     # Activar modo detallado global
     _set_verbose(args.verbose)
 
     # Mostrar banner
-    print(f"{C.ROJO_OSC}{BANNER}{C.RESET}")
     print(f"  {C.NEGRITA}Endpoint:{C.RESET} {args.endpoint}")
     print(f"  {C.NEGRITA}Modelo:{C.RESET}   {args.model or 'auto-detect'}")
     print(f"  {C.NEGRITA}Timeout:{C.RESET}  {args.timeout}s")

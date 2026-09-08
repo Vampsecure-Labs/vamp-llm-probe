@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "vamp-llm-probe"
+version = "1.3.0"
+description = "LLM API security auditor — prompt injection, jailbreak, ASCII smuggling, data exfiltration, OWASP LLM Top 10 mapping"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+authors = [{ name = "VampSecure Studios", email = "contact@vampsecurestudios.com" }]
+keywords = ["llm", "security", "prompt-injection", "jailbreak", "ascii-smuggling", "owasp", "pentest", "ai-security"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+dependencies = ["aiohttp>=3.9.0", "fpdf2>=2.7"]
+
+[project.scripts]
+vamp-llm-probe = "vamp_llm_probe:main"
+
+[project.urls]
+Homepage = "https://github.com/Vampsecure-Labs/vamp-llm-probe"
+Repository = "https://github.com/Vampsecure-Labs/vamp-llm-probe"
+
+[tool.setuptools]
+py-modules = ["vamp_llm_probe", "vampsec_report"]

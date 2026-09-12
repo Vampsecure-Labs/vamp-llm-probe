@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vamp-llm-probe"
-version = "1.3.1"
+version = "1.4.0"
 description = "LLM API security auditor — prompt injection, jailbreak, ASCII smuggling, data exfiltration, OWASP LLM Top 10 mapping"
 readme = "README.md"
 license = { text = "MIT" }

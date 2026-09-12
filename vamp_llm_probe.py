@@ -26,6 +26,8 @@ import pathlib
 import random
 import sys
 import time
+import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -43,13 +45,22 @@ from vampsec_report import (
 # Constantes globales
 # ---------------------------------------------------------------------------
 
-VERSION          = "1.3.1"
+VERSION          = "1.4.0"
 TOOL             = "vamp-llm-probe"
 FINDING_PREFIX   = "LLM"
 COPYRIGHT        = "© VampSecure Studios — VampSecure Labs Security Research Division"
 
-# Directorio de datasets adversariales bundleados
-PAYLOADS_DIR: pathlib.Path = pathlib.Path(__file__).parent / "payloads"
+# Caché local de datasets adversariales y URL base del repo de payloads
+_PAYLOADS_CACHE: pathlib.Path = pathlib.Path.home() / ".cache" / "vamp-llm-probe" / "payloads"
+_PAYLOADS_RAW   = "https://raw.githubusercontent.com/Vampsecure-Labs/vamp-llm-payloads/main"
+_PAYLOADS_FILES = [
+    "jailbreak_prompts.csv",
+    "injection_prompts.csv",
+    "injection_prompts_es.csv",
+    "forbidden_questions.csv",
+    "jailbreak_prompts_es.csv",
+    "ascii_smuggling_payloads.json",
+]
 
 # Rutas estándar de reconocimiento
 RUTAS_MODELOS: List[str] = [
@@ -805,9 +816,38 @@ def _detectar_injection_exitosa(respuesta: str) -> bool:
     return sin_rechazo and ejecuto
 
 
+def _dir_payloads() -> pathlib.Path:
+    """Devuelve el directorio de payloads activo: caché local si poblada, si no el bundleado."""
+    if _PAYLOADS_CACHE.exists() and any(_PAYLOADS_CACHE.iterdir()):
+        return _PAYLOADS_CACHE
+    bundled = pathlib.Path(__file__).parent / "payloads"
+    if bundled.exists():
+        return bundled
+    return _PAYLOADS_CACHE  # vacío; los loaders devuelven [] si el fichero no existe
+
+
+def _descargar_payloads(forzar: bool = False) -> None:
+    """
+    Descarga los datasets adversariales a la caché local.
+    Si forzar=False, omite los ficheros que ya existen.
+    """
+    _PAYLOADS_CACHE.mkdir(parents=True, exist_ok=True)
+    for nombre in _PAYLOADS_FILES:
+        dest = _PAYLOADS_CACHE / nombre
+        if dest.exists() and not forzar:
+            continue
+        url = f"{_PAYLOADS_RAW}/{nombre}"
+        try:
+            print(f"  ↓ Descargando {nombre}…", end=" ", flush=True)
+            urllib.request.urlretrieve(url, dest)
+            print("OK")
+        except (urllib.error.URLError, OSError) as exc:
+            print(f"ERROR ({exc})")
+
+
 def _cargar_dataset_jailbreaks() -> List[str]:
     """Carga jailbreak prompts desde payloads/jailbreak_prompts.csv."""
-    ruta = PAYLOADS_DIR / "jailbreak_prompts.csv"
+    ruta = _dir_payloads() / "jailbreak_prompts.csv"
     if not ruta.exists():
         return []
     prompts: List[str] = []
@@ -825,7 +865,7 @@ def _cargar_dataset_jailbreaks() -> List[str]:
 
 def _cargar_dataset_injection() -> List[str]:
     """Carga prompts de inyección directa desde payloads/injection_prompts.csv."""
-    ruta = PAYLOADS_DIR / "injection_prompts.csv"
+    ruta = _dir_payloads() / "injection_prompts.csv"
     if not ruta.exists():
         return []
     prompts: List[str] = []
@@ -845,7 +885,7 @@ def _cargar_dataset_forbidden(
     categorias: Optional[List[str]] = None,
 ) -> List[Dict[str, str]]:
     """Carga preguntas prohibidas desde payloads/forbidden_questions.csv."""
-    ruta = PAYLOADS_DIR / "forbidden_questions.csv"
+    ruta = _dir_payloads() / "forbidden_questions.csv"
     if not ruta.exists():
         return []
     items: List[Dict[str, str]] = []
@@ -864,7 +904,7 @@ def _cargar_dataset_forbidden(
 
 def _cargar_dataset_injection_es() -> List[str]:
     """Carga vectores de inyección en español desde payloads/injection_prompts_es.csv."""
-    ruta = PAYLOADS_DIR / "injection_prompts_es.csv"
+    ruta = _dir_payloads() / "injection_prompts_es.csv"
     if not ruta.exists():
         return []
     prompts: List[str] = []
@@ -882,7 +922,7 @@ def _cargar_dataset_injection_es() -> List[str]:
 
 def _cargar_dataset_jailbreaks_es() -> List[str]:
     """Carga jailbreak prompts en español desde payloads/jailbreak_prompts_es.csv."""
-    ruta = PAYLOADS_DIR / "jailbreak_prompts_es.csv"
+    ruta = _dir_payloads() / "jailbreak_prompts_es.csv"
     if not ruta.exists():
         return []
     prompts: List[str] = []
@@ -2866,9 +2906,20 @@ def construir_parser() -> argparse.ArgumentParser:
     # Argumentos principales
     parser.add_argument(
         "--endpoint",
-        required    = True,
+        required    = False,
+        default     = None,
         metavar     = "URL",
         help        = "URL base del endpoint de inferencia (ej: http://localhost:11434)",
+    )
+    parser.add_argument(
+        "--update-payloads",
+        action  = "store_true",
+        dest    = "update_payloads",
+        default = False,
+        help    = (
+            "Descarga o actualiza los datasets adversariales en "
+            "~/.cache/vamp-llm-probe/payloads/ y termina sin ejecutar el probe"
+        ),
     )
     parser.add_argument(
         "--api-key",
@@ -2938,7 +2989,7 @@ def construir_parser() -> argparse.ArgumentParser:
     # Grupo: Dataset Red Team (Fase 6)
     grp_ds = parser.add_argument_group(
         "Dataset Red Team (Fase 6)",
-        "Pruebas con datasets adversariales reales bundleados en payloads/",
+        "Pruebas con datasets adversariales reales (caché local o descargados con --update-payloads)",
     )
     grp_ds.add_argument(
         "--dataset",
@@ -2988,8 +3039,29 @@ async def main_async() -> int:
     print(f"{C.ROJO_OSC}{BANNER}{C.RESET}")
     args   = parser.parse_args()
 
+    # Modo standalone: actualizar datasets y salir
+    if args.update_payloads:
+        print(f"\n  Actualizando datasets adversariales en {_PAYLOADS_CACHE}\n")
+        _descargar_payloads(forzar=True)
+        print(f"\n  {C.VERDE}Datasets actualizados.{C.RESET}")
+        return 0
+
+    # --endpoint es obligatorio en modo probe
+    if not args.endpoint:
+        parser.error("el argumento --endpoint es requerido")
+
     # Activar modo detallado global
     _set_verbose(args.verbose)
+
+    # Auto-descarga al primer uso con --dataset si la caché está vacía
+    if getattr(args, "dataset", False) and not (
+        _PAYLOADS_CACHE.exists() and any(_PAYLOADS_CACHE.iterdir())
+    ):
+        bundled = pathlib.Path(__file__).parent / "payloads"
+        if not bundled.exists():
+            print(f"\n  {C.DIM}Descargando datasets adversariales (primera vez)…{C.RESET}")
+            _descargar_payloads()
+            print()
 
     # Mostrar banner
     print(f"  {C.NEGRITA}Endpoint:{C.RESET} {args.endpoint}")

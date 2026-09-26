@@ -1,7 +1,8 @@
+<!-- © VampSecure Studios — VampSecure Labs Security Research Division -->
 # vamp-llm-probe
 
 ![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.3.0-dc143c?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.6.0-dc143c?style=flat-square)
 ![License MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![VampSecure Labs](https://img.shields.io/badge/VampSecure-Labs-red?style=flat-square)
 
@@ -29,6 +30,13 @@ Security auditor for language model inference API endpoints. Sends crafted HTTP 
 ---
 
 ## Installation
+
+
+```bash
+pip install vamp-llm-probe
+# o con Homebrew:
+brew install vampsecure-labs/labs/vamp-llm-probe
+```
 
 ```bash
 pip install -r requirements.txt
@@ -289,7 +297,7 @@ Machine-readable structured output following the VSL standard schema:
 {
   "schema_version": "1.0",
   "generated": "2026-08-12 12:00 UTC",
-  "meta": { "tool": "vamp-llm-probe", "tool_version": "1.3.0", ... },
+  "meta": { "tool": "vamp-llm-probe", "tool_version": "1.6.0", ... },
   "summary": { "total": 5, "by_severity": { "CRITICAL": 2, "HIGH": 1, ... } },
   "findings": [ { "id": "LLM-001", "severity": "CRITICAL", ... } ]
 }
@@ -327,9 +335,14 @@ vamp-llm-probe/
 
 ## License
 
-MIT License — see individual file headers for copyright details.
+AGPL-3.0 License — see individual file headers for copyright details.
 
 ---
 
 © VampSecure Studios — VampSecure Labs Security Research Division  
 Authorized use only in environments with explicit written permission.
+
+---
+
+## Versión
+v1.6.0 — VampSecure Labs Security Research Division

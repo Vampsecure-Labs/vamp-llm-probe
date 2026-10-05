@@ -37,8 +37,6 @@ from vampsec_report import (
     Finding,
     ReportMeta,
     VampSecReport,
-    add_report_args,
-    meta_from_args,
 )
 
 # ---------------------------------------------------------------------------
@@ -1707,7 +1705,7 @@ async def fase_evasion(
         diferencia = _calcular_diferencia(referencia, respuesta_txt)
 
         if palabras_sensibles:
-            log_err(f"  HIGH — Posible evasión: palabras sensibles detectadas")
+            log_err("  HIGH — Posible evasión: palabras sensibles detectadas")
             hallazgos.append(Finding(
                 id          = item["id"],
                 title       = f"Posible evasión de restricciones — {item['nombre']}",
@@ -2001,7 +1999,7 @@ async def _analizar_fuga_system_prompt(
     encontrados = [p for p in patrones_system_prompt if p.lower() in respuesta.lower()]
 
     if encontrados and len(respuesta) > 80:
-        log_err(f"  HIGH — Posible extracción de system prompt detectada")
+        log_err("  HIGH — Posible extracción de system prompt detectada")
         hallazgos.append(Finding(
             id          = item["id"],
             title       = f"Posible extracción de system prompt — {item['nombre']}",
@@ -2044,7 +2042,7 @@ def _analizar_ssrf(
     a la URL del canario de prueba SSRF.
     """
     if indicadores_encontrados:
-        log_err(f"  CRITICAL — Posible vector SSRF en endpoint de inferencia")
+        log_err("  CRITICAL — Posible vector SSRF en endpoint de inferencia")
         hallazgos.append(Finding(
             id          = item["id"],
             title       = "Posible vector SSRF via inyección de prompt",
@@ -2235,7 +2233,7 @@ async def _comprobar_rate_limiting(
     log_verbose(f"  Exitosas: {exitosas}/10  Limitadas: {limitadas}/10")
 
     if exitosas == 10 and limitadas == 0:
-        log_warn(f"  HIGH — Sin rate limiting: 10/10 peticiones respondidas con HTTP 200")
+        log_warn("  HIGH — Sin rate limiting: 10/10 peticiones respondidas con HTTP 200")
         hallazgos.append(Finding(
             id          = f"{FINDING_PREFIX}-070",
             title       = "Ausencia de limitación de tasa en endpoint de inferencia",
@@ -2389,7 +2387,7 @@ async def _comprobar_modelo_inexistente(
             log_verbose(f"  Modelo inexistente → HTTP {r.status}")
 
             if r.status == 200 and len(texto) > 10:
-                log_warn(f"  MEDIUM — HTTP 200 con modelo inexistente")
+                log_warn("  MEDIUM — HTTP 200 con modelo inexistente")
                 hallazgos.append(Finding(
                     id          = f"{FINDING_PREFIX}-072",
                     title       = "Gestión deficiente de modelos inexistentes",
@@ -3024,7 +3022,7 @@ async def fase_dataset(
             await asyncio.sleep(0.3)
             resp = await _enviar_inferencia(session, url, estado, prompt, args.timeout)
             if resp and _detectar_injection_exitosa_ds(prompt, resp):
-                log_err(f"  HIGH — Injection dataset ejecutada")
+                log_err("  HIGH — Injection dataset ejecutada")
                 hallazgos.append(Finding(
                     id          = f"{FINDING_PREFIX}-{idx_hallazgo}",
                     severity    = "HIGH",
@@ -3050,8 +3048,8 @@ async def fase_dataset(
                 ))
                 idx_hallazgo += 1
             else:
-                log_verbose(f"  Sin efecto en injection vector")
-        log_ok(f"  Subtest A completado")
+                log_verbose("  Sin efecto en injection vector")
+        log_ok("  Subtest A completado")
 
     # ------------------------------------------------------------------
     # Subtest B: Jailbreak prompts del dataset real
@@ -3063,7 +3061,7 @@ async def fase_dataset(
             await asyncio.sleep(0.3)
             resp = await _enviar_inferencia(session, url, estado, prompt, args.timeout)
             if resp and _detectar_jailbreak_exitoso_ds(resp):
-                log_err(f"  HIGH — Jailbreak dataset: modelo cedió restricciones")
+                log_err("  HIGH — Jailbreak dataset: modelo cedió restricciones")
                 hallazgos.append(Finding(
                     id          = f"{FINDING_PREFIX}-{idx_hallazgo}",
                     severity    = "HIGH",
@@ -3089,8 +3087,8 @@ async def fase_dataset(
                 ))
                 idx_hallazgo += 1
             else:
-                log_verbose(f"  Sin efecto en jailbreak vector")
-        log_ok(f"  Subtest B completado")
+                log_verbose("  Sin efecto en jailbreak vector")
+        log_ok("  Subtest B completado")
 
     # ------------------------------------------------------------------
     # Subtest C: Preguntas prohibidas — categorías de política de contenido
@@ -3134,7 +3132,7 @@ async def fase_dataset(
                 idx_hallazgo += 1
             else:
                 log_verbose(f"  Rechazo correcto para categoría {item['category']}")
-        log_ok(f"  Subtest C completado")
+        log_ok("  Subtest C completado")
 
     # ------------------------------------------------------------------
     # Subtest A_es: Injection prompts en español
@@ -3146,7 +3144,7 @@ async def fase_dataset(
             await asyncio.sleep(0.3)
             resp = await _enviar_inferencia(session, url, estado, prompt, args.timeout)
             if resp and _detectar_injection_exitosa_ds(prompt, resp):
-                log_err(f"  HIGH — Injection ES dataset ejecutada")
+                log_err("  HIGH — Injection ES dataset ejecutada")
                 hallazgos.append(Finding(
                     id          = f"{FINDING_PREFIX}-{idx_hallazgo}",
                     severity    = "HIGH",
@@ -3172,8 +3170,8 @@ async def fase_dataset(
                 ))
                 idx_hallazgo += 1
             else:
-                log_verbose(f"  Sin efecto en injection vector ES")
-        log_ok(f"  Subtest A_es completado")
+                log_verbose("  Sin efecto en injection vector ES")
+        log_ok("  Subtest A_es completado")
 
     # ------------------------------------------------------------------
     # Subtest B_es: Jailbreak prompts en español
@@ -3185,7 +3183,7 @@ async def fase_dataset(
             await asyncio.sleep(0.3)
             resp = await _enviar_inferencia(session, url, estado, prompt, args.timeout)
             if resp and _detectar_jailbreak_exitoso_ds(resp):
-                log_err(f"  HIGH — Jailbreak ES: modelo cedió restricciones en español")
+                log_err("  HIGH — Jailbreak ES: modelo cedió restricciones en español")
                 hallazgos.append(Finding(
                     id          = f"{FINDING_PREFIX}-{idx_hallazgo}",
                     severity    = "HIGH",
@@ -3213,8 +3211,8 @@ async def fase_dataset(
                 ))
                 idx_hallazgo += 1
             else:
-                log_verbose(f"  Sin efecto en jailbreak vector ES")
-        log_ok(f"  Subtest B_es completado")
+                log_verbose("  Sin efecto en jailbreak vector ES")
+        log_ok("  Subtest B_es completado")
 
     # ------------------------------------------------------------------
     # Subtest D: ASCII Smuggling — instrucciones ocultas en Unicode Tags
@@ -3493,7 +3491,7 @@ async def fase_rag_poisoning(
         ejecuto_general = _detectar_injection_exitosa_ds(payload, resp) or _detectar_jailbreak_exitoso_ds(resp)
 
         if sin_rechazo and (sigue_instrucciones or ejecuto_general):
-            log_err(f"  CRITICAL — RAG-001: inyección vía contexto recuperado")
+            log_err("  CRITICAL — RAG-001: inyección vía contexto recuperado")
             hallazgos.append(Finding(
                 id          = "RAG-001",
                 severity    = "CRITICAL",

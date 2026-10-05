@@ -626,7 +626,7 @@ class VampSecReport:
                     + '</div>'
                     if any(t.startswith("OWASP-") for t in f.tags) else ""
                 )
-                + f'</div>'
+                + '</div>'
             )
         return "\n".join(partes)
 

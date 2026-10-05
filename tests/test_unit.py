@@ -6,11 +6,7 @@ Cubre las funciones de detección de jailbreak, construcción de peticiones,
 extracción de respuestas, ASCII smuggling y constantes del módulo.
 """
 
-import sys
-from pathlib import Path
-from unittest.mock import MagicMock
 
-import pytest
 
 import vamp_llm_probe as llm_probe
 

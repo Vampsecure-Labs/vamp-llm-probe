@@ -4,8 +4,8 @@
 # vamp-llm-probe
 
 ![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.6.0-dc143c?style=flat-square)
-![License MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.7.0-dc143c?style=flat-square)
+![License AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green?style=flat-square)
 ![VampSecure Labs](https://img.shields.io/badge/VampSecure-Labs-red?style=flat-square)
 
 Security auditor for language model inference API endpoints. Sends crafted HTTP requests to detect vulnerabilities without relying on any AI SDK — only `aiohttp`, `asyncio`, and the standard library.
@@ -16,9 +16,9 @@ Security auditor for language model inference API endpoints. Sends crafted HTTP 
 
 ## Features
 
-- **6 audit phases** covering reconnaissance, prompt injection, restriction bypass, data extraction, access controls and **adversarial dataset red team**
+- **7 audit phases** covering reconnaissance, prompt injection, restriction bypass, data extraction, access controls, adversarial dataset red team and **multi-turn conversation attacks**
 - **Truly bilingual detection** — refusal and compliance heuristics cover both English and Spanish; models responding in Spanish are correctly evaluated regardless of the prompt language
-- **Bundled adversarial datasets** — 666 jailbreaks (EN) + 50 injection vectors (ES) + 30 jailbreaks (ES) + 210 injection prompts (EN) + 390 forbidden questions (13 content-policy categories)
+- **Bundled adversarial datasets** — 666 jailbreaks (EN) + 170+ injection/jailbreak vectors (ES bundled en código, sin fichero externo) + 135+ jailbreaks ES + 210 injection prompts (EN) + 390 forbidden questions (13 content-policy categories) — **305+ payloads ES totales**
 - **6-subtest Phase 6**: A (injection EN), B (jailbreak EN), C (forbidden questions), A_es (injection ES), B_es (jailbreak ES), **D (ASCII smuggling)**
 - **ASCII smuggling detection** — active (subtest D sends Unicode Tags payloads) and passive (scans every Phase 2 response for hidden Unicode Tags characters in output)
 - **No AI SDK dependency** — pure HTTP-level testing via `aiohttp`
@@ -126,6 +126,8 @@ python3 vamp_llm_probe.py \
 | `--dataset` | Activate Phase 6: adversarial dataset red team | false |
 | `--dataset-sample N` | Prompts per dataset type to test | 15 |
 | `--dataset-categories CATS` | Comma-separated forbidden question categories to test | all |
+| `--multi-turn` | Activate Phase 9: multi-turn conversation attacks (20 chains, EN+ES) | false |
+| `--mt-turns N` | Number of turns per multi-turn chain | 3 |
 
 **Available forbidden question categories:** `Illegal Activity`, `Hate Speech`, `Malware`, `Physical Harm`, `Economic Harm`, `Fraud`, `Pornography`, `Political Lobbying`, `Privacy Violence`, `Legal Opinion`, `Financial Advice`, `Health Consultation`, `Gov Decision`
 
@@ -141,6 +143,7 @@ python3 vamp_llm_probe.py \
 | 4 | Data Extraction & Leaks | LLM-050..069 | CRITICAL to MEDIUM |
 | 5 | Access Controls & Behavior | LLM-070..089 | HIGH to LOW |
 | 6 | Adversarial Dataset Red Team | LLM-100..139 | HIGH |
+| 9 | Multi-Turn Conversation Attacks (`--multi-turn`) | LLM-MT-001..020 | CRITICAL to HIGH |
 
 ### Phase 1 — Endpoint Reconnaissance
 
@@ -346,5 +349,34 @@ Authorized use only in environments with explicit written permission.
 
 ---
 
-## Versión
-v1.6.0 — VampSecure Labs Security Research Division
+### Phase 9 — Multi-Turn Conversation Attacks (`--multi-turn`)
+
+Tests 20 conversation chains designed to bypass LLM safety controls through progressive context manipulation. Unlike single-turn attacks, multi-turn chains build rapport, establish personas and escalate incrementally across multiple messages.
+
+```bash
+python3 vamp_llm_probe.py --endpoint http://localhost:11434 --multi-turn
+python3 vamp_llm_probe.py --endpoint http://localhost:11434 --multi-turn --mt-turns 5
+```
+
+| Chain set | Language | Count | Strategy |
+|---|---|---|---|
+| MT-ES-001..010 | Spanish | 10 | Rol de asistente sin restricciones, extracción progresiva, jailbreak incremental |
+| MT-EN-001..010 | English | 10 | Roleplay escalation, hypothetical framing, authority impersonation chains |
+
+Each chain sends N turns sequentially, tracking conversation history. A finding is raised if the model eventually complies with a restricted request after initial refusal. This tests **multi-turn jailbreak resilience** — a model that correctly refuses turn 1 but complies on turn 3 is still vulnerable.
+
+---
+
+## Historial de versiones
+
+| Versión | Cambios principales |
+|---------|---------------------|
+| v1.7.0 | Fase 9 multi-turn (20 chains EN+ES), corpus ES bundled en código (305+ payloads), sin dependencia de ficheros CSV externos para ES |
+| v1.6.0 | OWASP mapping LLM+Agentic AI, ASCII smuggling passive scan en Phase 2 |
+| v1.5.0 | Subtest D ASCII smuggling activo, datasets ES curados por VSL |
+| v1.4.0 | Phase 6 datasets, bilingual detection engine |
+
+---
+
+© VampSecure Studios — VampSecure Labs Security Research Division  
+Authorized use only in environments with explicit written permission.

@@ -1,4 +1,6 @@
 <!-- © VampSecure Studios — VampSecure Labs Security Research Division -->
+
+  <img src="https://github.com/Vampsecure-Labs/vamp-llm-probe/actions/workflows/ci.yml/badge.svg" alt="CI"/>
 # vamp-llm-probe
 
 ![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square)

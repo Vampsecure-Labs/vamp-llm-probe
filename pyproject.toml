@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vamp-llm-probe"
-version = "1.7.0"
+version = "1.8.0"
 description = "LLM API security auditor — prompt injection, jailbreak, ASCII smuggling, data exfiltration, OWASP LLM Top 10 mapping"
 readme = "README.md"
 license = { text = "AGPL-3.0-only" }
@@ -34,5 +34,9 @@ vamp-llm-probe = "vamp_llm_probe:main"
 Homepage = "https://github.com/Vampsecure-Labs/vamp-llm-probe"
 Repository = "https://github.com/Vampsecure-Labs/vamp-llm-probe"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vamp_llm_probe*"]
+
 [tool.setuptools]
-py-modules = ["vamp_llm_probe", "vampsec_report"]
+py-modules = ["vampsec_report"]

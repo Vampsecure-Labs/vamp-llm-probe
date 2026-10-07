@@ -3,11 +3,14 @@
 cli.py — Punto de entrada CLI para vamp-llm-probe v1.8.0.
 """
 from __future__ import annotations
-import argparse, asyncio, pathlib, sys
+import argparse
+import asyncio
+import pathlib
+import sys
 
 from ._models import (
     C, COPYRIGHT, _PAYLOADS_CACHE, _CADENAS_MULTITURN,
-    _set_verbose, _verbose_global,
+    _set_verbose,
 )
 from ._core import LLMProbe, _descargar_payloads
 

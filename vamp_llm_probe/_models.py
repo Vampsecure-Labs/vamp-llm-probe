@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pathlib
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 from vampsec_report import Finding, ReportMeta, VampSecReport  # noqa: F401
 

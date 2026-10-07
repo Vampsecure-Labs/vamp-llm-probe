@@ -3,18 +3,24 @@
 _core.py — Lógica de auditoría y fases de vamp-llm-probe.
 """
 from __future__ import annotations
-import argparse, asyncio, base64, csv, json, pathlib, random, time
-import urllib.error, urllib.request
-from typing import Any, Dict, List, Optional, Tuple
+import argparse
+import asyncio
+import base64
+import csv
+import json
+import pathlib
+import random
+import time
+import urllib.error
+import urllib.request
+from typing import Any, Dict, List, Optional
 import aiohttp
 from ._models import (
-    VERSION, TOOL_NAME, TOOL, FINDING_PREFIX, COPYRIGHT,
-    _PAYLOADS_CACHE, _PAYLOADS_RAW, _PAYLOADS_FILES,
+    VERSION, TOOL, FINDING_PREFIX, _PAYLOADS_CACHE, _PAYLOADS_RAW, _PAYLOADS_FILES,
     RUTAS_MODELOS, RUTAS_INFERENCIA, MODEL_SPECIFIC_PACKS, HEADERS_SEGURIDAD,
     C, EstadoEndpoint,
     log_info, log_ok, log_warn, log_err, log_verbose,
-    cabecera_fase, resumen_hallazgos, log_hallazgo,
-    _REFUSAL_PATTERNS, _COMPLIANCE_MARKERS,
+    cabecera_fase, resumen_hallazgos, _REFUSAL_PATTERNS, _COMPLIANCE_MARKERS,
     _UNICODE_TAGS_INICIO, _UNICODE_TAGS_FIN, _FLAGS_LEGITIMOS, _ASCII_EXEC_MARKERS,
     PAYLOADS_INYECCION, _INYECCION_BUNDLED_ES, _JAILBREAK_BUNDLED_ES,
     _RAG_INJECTION_PAYLOADS, _RAG_EXTRACTION_PAYLOADS, _RAG_BYPASS_MARKERS,

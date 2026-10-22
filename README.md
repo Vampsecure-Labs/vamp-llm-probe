@@ -4,7 +4,7 @@
 # vamp-llm-probe
 
 ![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.7.1-dc143c?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.8.0-dc143c?style=flat-square)
 ![License AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-green?style=flat-square)
 ![VampSecure Labs](https://img.shields.io/badge/VampSecure-Labs-red?style=flat-square)
 
@@ -310,7 +310,7 @@ Machine-readable structured output following the VSL standard schema:
 {
   "schema_version": "1.0",
   "generated": "2026-08-12 12:00 UTC",
-  "meta": { "tool": "vamp-llm-probe", "tool_version": "1.7.1", ... },
+  "meta": { "tool": "vamp-llm-probe", "tool_version": "1.8.0", ... },
   "summary": { "total": 5, "by_severity": { "CRITICAL": 2, "HIGH": 1, ... } },
   "findings": [ { "id": "LLM-001", "severity": "CRITICAL", ... } ]
 }
@@ -376,7 +376,7 @@ Each chain sends N turns sequentially, tracking conversation history. A finding 
 $ python3 vamp_llm_probe.py --endpoint http://10.0.0.50:11434 --dataset --dataset-sample 20 --verbose
 
 ╔══════════════════════════════════════════════════════════════╗
-║         vamp-llm-probe v1.7.1 — VampSecure Labs              ║
+║         vamp-llm-probe v1.8.0 — VampSecure Labs              ║
 ║  Endpoint: http://10.0.0.50:11434   Model: llama3:8b         ║
 ╚══════════════════════════════════════════════════════════════╝
 
@@ -460,6 +460,7 @@ Exit code: 2 — CRITICAL findings — blocking deployment
 
 | Version | Main changes |
 |---------|-------------|
+| v1.8.0 | Modularisation to importable Python package (lib+cli); security hardening improvements |
 | v1.7.1 | Bilingual README (EN/ES) |
 | v1.7.0 | Phase 9 multi-turn (20 chains EN+ES), ES corpus bundled in code (305+ payloads), no external CSV dependency for ES |
 | v1.6.0 | OWASP mapping LLM+Agentic AI, ASCII smuggling passive scan in Phase 2 |
@@ -752,6 +753,7 @@ Cada cadena envía N turnos de forma secuencial, rastreando el historial de conv
 
 | Versión | Cambios principales |
 |---------|---------------------|
+| v1.8.0 | Modularización a paquete Python instalable (lib+cli); mejoras de seguridad |
 | v1.7.1 | README bilingüe (EN/ES) |
 | v1.7.0 | Fase 9 multi-turn (20 chains EN+ES), corpus ES bundled en código (305+ payloads), sin dependencia de ficheros CSV externos para ES |
 | v1.6.0 | OWASP mapping LLM+Agentic AI, ASCII smuggling passive scan en Phase 2 |

@@ -1,6 +1,6 @@
 # © VampSecure Studios — VampSecure Labs Security Research Division
 """
-cli.py — Punto de entrada CLI para vamp-llm-probe v1.8.0.
+cli.py — Punto de entrada CLI para vamp-llm-probe v1.8.0
 """
 from __future__ import annotations
 import argparse
